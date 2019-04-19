@@ -3,6 +3,7 @@
 
 import React, { Component } from 'react';
 import axios from 'axios';
+import SearchForm from '../../components/searchform';
 import RecipeCard from '../../components/recipecard';
 import './app.css';
 
@@ -11,7 +12,9 @@ export default class App extends Component {
     super(props);
 
     this.state = {
-      meal: {}
+      latestMeal: {},
+      nameMeal: {}
+
     }
   }
 // api call and set state with response
@@ -20,9 +23,9 @@ export default class App extends Component {
 
     axios.get(URL)
       .then(res => {
-        const meal = res.data.meals;
-        if(typeof meal === 'object'){
-          this.setState({ meal });
+        const latestMeal = res.data.meals;
+        if(typeof latestMeal === 'object'){
+          this.setState({ latestMeal });
         }
       })
       .catch(error => {
@@ -30,14 +33,35 @@ export default class App extends Component {
       });
 
   }
-
+  searchName = (name) => {
+    let URL = 'https://www.themealdb.com/api/json/v1/1/search.php?s=' + name;
+    axios.get(URL)
+      .then(res => {
+        const nameMeal = res.data.meals;
+        if(typeof nameMeal === 'object' && nameMeal !== null){
+          this.setState({ nameMeal });
+        }
+        else {
+          this.setState({ nameMeal : []});
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        console.log("this is an error")
+      });
+  }
   render() {
-    const data = this.state.meal;
+    const latestMeal = this.state.latestMeal,
+          nameMeal = this.state.nameMeal
     return (
       <div className="app">
-          <h1>Here are some recipes to try </h1>
-          {/*checks if anything exits in state and renders*/}
-         {data.length > 0 && <RecipeCard meals={data} />}
+        <SearchForm
+          onSearch = {this.searchName}
+          caption = {'Search by dish name'}/>
+
+        {/*checks if anything exits in state and renders*/}
+        {nameMeal.length > 0 && <RecipeCard meals={nameMeal} caption={'Here are your search results'} />}
+         {latestMeal.length > 0 && <RecipeCard meals={latestMeal} caption={'Here are the latest recipes'} />}
       </div>
     );
   }
